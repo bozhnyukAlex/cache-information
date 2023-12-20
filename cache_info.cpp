@@ -32,6 +32,7 @@ void free_measure_data() {
 
 long long measure_pattern(const int patt_pow, const int assoc_patt) {
     char **el;
+    FILE *dump = fopen("/dev/null", "w");
     for (int i = (assoc_patt - 1) * patt_pow; i >= 0; i -= patt_pow) {
         el = (char **) &measure_data[i];
         if (i >= patt_pow) {
@@ -41,14 +42,19 @@ long long measure_pattern(const int patt_pow, const int assoc_patt) {
         }
     }
 
+    long long dummy = 0L;
+    long long prob = 0L;
+
     const long long rounds = 20;
     vector<long long> measured_times;
     for (long long k = 0L; k < rounds; k++) {
         auto t_start = chrono::high_resolution_clock::now();
-        for (long long prob = 0L; prob < PROB_TIMES; prob++) {
+        for (prob = 0L; prob < PROB_TIMES; prob++) {
             el = (char **) *el;
+            dummy += (long long) el;
         }
         auto t_end = chrono::high_resolution_clock::now();
+        fprintf(dump, "%lld", dummy);
         auto t_delta = t_end - t_start;
         measured_times.push_back((t_delta).count());
     }
@@ -56,6 +62,8 @@ long long measure_pattern(const int patt_pow, const int assoc_patt) {
     for_each(measured_times.begin(), measured_times.end(), [&] (int t) {
         time_sum += t;
     });
+    dummy = 0;
+    fclose(dump);
     return time_sum / rounds;
 }
 
